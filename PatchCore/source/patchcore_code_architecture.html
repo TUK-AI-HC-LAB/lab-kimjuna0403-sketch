@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchCore Code Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #020617;
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .pulse-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #34d399; animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+  h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.5px; }
+  .subtitle { font-size: 11px; color: #64748b; margin-bottom: 20px; margin-left: 22px; }
+  .diagram-card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-cyan { background: #22d3ee; } .dot-emerald { background: #34d399; }
+  .dot-amber { background: #fbbf24; }
+  .card h3 { font-size: 11px; font-weight: 600; color: #e2e8f0; }
+  .card li { font-size: 10px; color: #94a3b8; margin-bottom: 4px; line-height: 1.5; list-style: none; }
+  .footer { font-size: 10px; color: #334155; text-align: center; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="pulse-dot"></div>
+  <h1>PatchCore — 실제 코드 아키텍처</h1>
+</div>
+<div class="subtitle">amazon-science/patchcore-inspection · GitHub 실제 소스 구조 기반</div>
+
+<div class="diagram-card">
+<svg viewBox="0 0 1100 780" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arr-c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+    </marker>
+    <marker id="arr-e" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arr-v" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+    </marker>
+    <marker id="arr-a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+    </marker>
+    <marker id="arr-r" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+    </marker>
+  </defs>
+
+  <rect width="1100" height="780" fill="#020617"/>
+  <rect width="1100" height="780" fill="url(#grid)"/>
+
+  <!-- ============================================================ -->
+  <!--  LAYER 0: Entry Point (bin/)                                  -->
+  <!-- ============================================================ -->
+  <rect x="18" y="18" width="160" height="14" rx="3" fill="#020617"/>
+  <text x="23" y="29" fill="#64748b" font-size="9" font-family="JetBrains Mono" font-weight="600">📁 bin/  (Entry Points)</text>
+
+  <!-- run_patchcore.py -->
+  <rect x="18" y="35" width="240" height="62" rx="6" fill="#0f172a"/>
+  <rect x="18" y="35" width="240" height="62" rx="6" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="138" y="56" fill="white" font-size="11" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">run_patchcore.py</text>
+  <text x="138" y="71" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">@click CLI entry point</text>
+  <text x="138" y="84" fill="#fbbf24" font-size="8" text-anchor="middle" font-family="JetBrains Mono">patch_core | sampler | dataset 커맨드 그룹</text>
+
+  <!-- load_and_evaluate -->
+  <rect x="278" y="35" width="240" height="62" rx="6" fill="#0f172a"/>
+  <rect x="278" y="35" width="240" height="62" rx="6" fill="rgba(120,53,15,0.25)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="398" y="56" fill="#cbd5e1" font-size="11" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">load_and_evaluate_patchcore.py</text>
+  <text x="398" y="71" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">저장된 모델 로드 후 평가</text>
+  <text x="398" y="84" fill="#fbbf24" font-size="8" text-anchor="middle" font-family="JetBrains Mono">patch_core_loader 커맨드</text>
+
+  <!-- ============================================================ -->
+  <!--  LAYER 1: Core Module — patchcore.py (PatchCore class)        -->
+  <!-- ============================================================ -->
+  <!-- boundary -->
+  <rect x="18" y="130" width="1064" height="310" rx="10"
+    fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.5"/>
+  <rect x="30" y="122" width="250" height="16" rx="3" fill="#020617"/>
+  <text x="155" y="133" fill="#34d399" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">📄 src/patchcore/patchcore.py  —  class PatchCore(nn.Module)</text>
+
+  <!-- forward_modules dict -->
+  <rect x="30" y="142" width="200" height="14" rx="3" fill="#020617"/>
+  <text x="35" y="152" fill="#64748b" font-size="8" font-family="JetBrains Mono">self.forward_modules = ModuleDict({})</text>
+
+  <!-- NetworkFeatureAggregator -->
+  <rect x="30" y="160" width="210" height="72" rx="6" fill="#0f172a"/>
+  <rect x="30" y="160" width="210" height="72" rx="6" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="135" y="181" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">NetworkFeatureAggregator</text>
+  <text x="135" y="195" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">common.py</text>
+  <text x="135" y="208" fill="#22d3ee" font-size="8" text-anchor="middle" font-family="JetBrains Mono">backbone hook으로 layer별</text>
+  <text x="135" y="220" fill="#22d3ee" font-size="8" text-anchor="middle" font-family="JetBrains Mono">feature map 추출</text>
+
+  <!-- Preprocessing -->
+  <rect x="260" y="160" width="185" height="72" rx="6" fill="#0f172a"/>
+  <rect x="260" y="160" width="185" height="72" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="352" y="181" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">Preprocessing</text>
+  <text x="352" y="195" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">common.py</text>
+  <text x="352" y="208" fill="#22d3ee" font-size="8" text-anchor="middle" font-family="JetBrains Mono">MeanMapper(pretrain_embed_dim)</text>
+  <text x="352" y="220" fill="#22d3ee" font-size="8" text-anchor="middle" font-family="JetBrains Mono">feature concat + 차원 맞춤</text>
+
+  <!-- Aggregator (Preadapt) -->
+  <rect x="465" y="160" width="185" height="72" rx="6" fill="#0f172a"/>
+  <rect x="465" y="160" width="185" height="72" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="557" y="181" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">Aggregator</text>
+  <text x="557" y="195" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">common.py  (preadapt_aggregator)</text>
+  <text x="557" y="208" fill="#22d3ee" font-size="8" text-anchor="middle" font-family="JetBrains Mono">RescaleSegmentor 포함</text>
+  <text x="557" y="220" fill="#22d3ee" font-size="8" text-anchor="middle" font-family="JetBrains Mono">target_embed_dim 투영</text>
+
+  <!-- PatchMaker -->
+  <rect x="670" y="160" width="180" height="72" rx="6" fill="#0f172a"/>
+  <rect x="670" y="160" width="180" height="72" rx="6" fill="rgba(6,78,59,0.45)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="760" y="181" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">PatchMaker</text>
+  <text x="760" y="195" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">patchcore.py 내부 클래스</text>
+  <text x="760" y="208" fill="#34d399" font-size="8" text-anchor="middle" font-family="JetBrains Mono">patchsize=3, stride=1</text>
+  <text x="760" y="220" fill="#34d399" font-size="8" text-anchor="middle" font-family="JetBrains Mono">local neighbourhood unfold</text>
+
+  <!-- NearestNeighbourScorer -->
+  <rect x="870" y="160" width="200" height="72" rx="6" fill="#0f172a"/>
+  <rect x="870" y="160" width="200" height="72" rx="6" fill="rgba(76,29,149,0.45)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="970" y="181" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">NearestNeighbourScorer</text>
+  <text x="970" y="195" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">common.py</text>
+  <text x="970" y="208" fill="#a78bfa" font-size="8" text-anchor="middle" font-family="JetBrains Mono">FaissNN / ApproximateFaissNN</text>
+  <text x="970" y="220" fill="#a78bfa" font-size="8" text-anchor="middle" font-family="JetBrains Mono">kNN 탐색 + 거리 계산</text>
+
+  <!-- --- fit() method --- -->
+  <rect x="30" y="255" width="580" height="80" rx="6"
+    fill="rgba(6,78,59,0.2)" stroke="#34d399" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="45" y="272" fill="#34d399" font-size="9" font-weight="600" font-family="JetBrains Mono">def fit(self, training_data)  ← Training 루프</text>
+  <text x="45" y="289" fill="#94a3b8" font-size="8.5" font-family="JetBrains Mono">1. DataLoader 순회 → forward_modules["feature_aggregator"]  → 패치 피처 추출</text>
+  <text x="45" y="304" fill="#94a3b8" font-size="8.5" font-family="JetBrains Mono">2. Preprocessing → Aggregator → PatchMaker.unpatch_scores()</text>
+  <text x="45" y="319" fill="#94a3b8" font-size="8.5" font-family="JetBrains Mono">3. featuresampler.run(features) → coreset 서브샘플링</text>
+  <text x="45" y="330" fill="#34d399" font-size="8" font-family="JetBrains Mono">   결과: anomaly_scorer.fit([memory_bank])  →  FAISS 인덱스 저장</text>
+
+  <!-- --- predict() method --- -->
+  <rect x="630" y="255" width="440" height="80" rx="6"
+    fill="rgba(76,29,149,0.2)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="645" y="272" fill="#a78bfa" font-size="9" font-weight="600" font-family="JetBrains Mono">def predict(self, data)  ← Inference 루프</text>
+  <text x="645" y="289" fill="#94a3b8" font-size="8.5" font-family="JetBrains Mono">1. 동일 feature_aggregator → Preprocessing → Aggregator → PatchMaker</text>
+  <text x="645" y="304" fill="#94a3b8" font-size="8.5" font-family="JetBrains Mono">2. anomaly_scorer.predict(query_features)  →  (distances, indices)</text>
+  <text x="645" y="319" fill="#94a3b8" font-size="8.5" font-family="JetBrains Mono">3. _compute_anomaly_score()  →  re-weighting (neighbour density)</text>
+  <text x="645" y="330" fill="#a78bfa" font-size="8" font-family="JetBrains Mono">   출력: anomaly_scores (image), segmentations (pixel)</text>
+
+  <!-- ============================================================ -->
+  <!--  LAYER 2: Supporting Modules                                  -->
+  <!-- ============================================================ -->
+
+  <!-- backbones.py -->
+  <rect x="18" y="465" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="18" y="465" width="200" height="80" rx="6" fill="rgba(30,41,59,0.6)" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="118" y="486" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">backbones.py</text>
+  <text x="118" y="501" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">load(name) → pretrained model</text>
+  <text x="118" y="514" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">WideResNet50 / ResNet101</text>
+  <text x="118" y="526" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">ResNeXt101 / DenseNet201</text>
+  <text x="118" y="538" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">torchvision pretrained (ImageNet)</text>
+
+  <!-- sampler.py -->
+  <rect x="238" y="465" width="250" height="80" rx="6" fill="#0f172a"/>
+  <rect x="238" y="465" width="250" height="80" rx="6" fill="rgba(136,19,55,0.35)" stroke="#fb7185" stroke-width="1.5"/>
+  <text x="363" y="486" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">sampler.py</text>
+  <text x="363" y="501" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">IdentitySampler  (서브샘플링 안함)</text>
+  <text x="363" y="515" fill="#fb7185" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">ApproximateGreedyCoresetSampler</text>
+  <text x="363" y="528" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="JetBrains Mono">Greedy Coreset + JL projection ψ</text>
+  <text x="363" y="540" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">percentage p (0.01 ~ 1.0)</text>
+
+  <!-- common.py detail -->
+  <rect x="508" y="465" width="370" height="80" rx="6" fill="#0f172a"/>
+  <rect x="508" y="465" width="370" height="80" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="693" y="486" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">common.py  (핵심 유틸리티 모음)</text>
+  <text x="693" y="501" fill="#22d3ee" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">NetworkFeatureAggregator · Preprocessing · MeanMapper</text>
+  <text x="693" y="514" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">Aggregator · RescaleSegmentor · NearestNeighbourScorer</text>
+  <text x="693" y="527" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">FaissNN · ApproximateFaissNN (IVFPQ)</text>
+  <text x="693" y="540" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">→ forward hook 기반 feature 추출 · FAISS GPU/CPU 검색</text>
+
+  <!-- metrics.py -->
+  <rect x="898" y="465" width="184" height="80" rx="6" fill="#0f172a"/>
+  <rect x="898" y="465" width="184" height="80" rx="6" fill="rgba(251,146,60,0.25)" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="990" y="486" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">metrics.py</text>
+  <text x="990" y="501" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">compute_imagewise_retrieval</text>
+  <text x="990" y="514" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">compute_pixelwise_retrieval</text>
+  <text x="990" y="527" fill="#fb923c" font-size="8" text-anchor="middle" font-family="JetBrains Mono">AUROC / PRO 계산</text>
+  <text x="990" y="540" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">sklearn + PRO metric</text>
+
+  <!-- ============================================================ -->
+  <!--  LAYER 3: Dataset                                             -->
+  <!-- ============================================================ -->
+  <rect x="18" y="573" width="320" height="70" rx="6" fill="#0f172a"/>
+  <rect x="18" y="573" width="320" height="70" rx="6" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="178" y="595" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">datasets/mvtec.py  (+ mtd, stc)</text>
+  <text x="178" y="610" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">MVTecDataset(torch.utils.data.Dataset)</text>
+  <text x="178" y="623" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">resize → center_crop → normalize</text>
+  <text x="178" y="636" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">DataLoader로 PatchCore.fit/predict에 공급</text>
+
+  <!-- LAYER 3: outputs / logging -->
+  <rect x="358" y="573" width="320" height="70" rx="6" fill="#0f172a"/>
+  <rect x="358" y="573" width="320" height="70" rx="6" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="518" y="595" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">결과 저장 / 로깅</text>
+  <text x="518" y="610" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">models/  →  nnscorer_search_index.faiss</text>
+  <text x="518" y="623" fill="#94a3b8" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">             patchcore_params.pkl</text>
+  <text x="518" y="636" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">results.csv  /  W&B (wandb) logging</text>
+
+  <!-- LAYER 3: External deps -->
+  <rect x="698" y="573" width="384" height="70" rx="6" fill="#0f172a"/>
+  <rect x="698" y="573" width="384" height="70" rx="6" fill="rgba(76,29,149,0.25)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="890" y="595" fill="white" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">외부 의존성</text>
+  <text x="890" y="612" fill="#a78bfa" font-size="8.5" text-anchor="middle" font-family="JetBrains Mono">faiss-gpu  ·  PyTorch  ·  torchvision</text>
+  <text x="890" y="626" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">scikit-learn  ·  scipy  ·  tqdm  ·  Pillow  ·  wandb</text>
+  <text x="890" y="638" fill="#64748b" font-size="8" text-anchor="middle" font-family="JetBrains Mono">PyTorch Image Models (timm/rwightman)</text>
+
+  <!-- ============================================================ -->
+  <!--  ARROWS                                                        -->
+  <!-- ============================================================ -->
+
+  <!-- bin → PatchCore class boundary (run → fit/predict) -->
+  <line x1="138" y1="97" x2="138" y2="128" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-a)"/>
+  <line x1="398" y1="97" x2="310" y2="128" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-a)" opacity="0.6"/>
+
+  <!-- forward_modules arrows (top layer, within PatchCore boundary) -->
+  <line x1="240" y1="196" x2="258" y2="196" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arr-c)"/>
+  <line x1="445" y1="196" x2="463" y2="196" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arr-c)"/>
+  <line x1="650" y1="196" x2="668" y2="196" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-e)"/>
+  <line x1="850" y1="196" x2="868" y2="196" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arr-v)"/>
+
+  <!-- PatchCore → supporting modules -->
+  <!-- → backbones -->
+  <line x1="118" y1="440" x2="118" y2="463" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- → sampler -->
+  <line x1="310" y1="440" x2="363" y2="463" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arr-r)"/>
+  <!-- → common -->
+  <line x1="557" y1="440" x2="650" y2="463" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arr-c)"/>
+  <!-- → metrics -->
+  <line x1="900" y1="440" x2="960" y2="463" stroke="#fb923c" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- supporting → datasets -->
+  <line x1="118" y1="545" x2="118" y2="571" stroke="#94a3b8" stroke-width="1" marker-end="url(#arr)" opacity="0.6"/>
+  <!-- metrics → results -->
+  <line x1="693" y1="545" x2="540" y2="571" stroke="#fb923c" stroke-width="1" marker-end="url(#arr)" opacity="0.6"/>
+  <!-- common → external deps -->
+  <line x1="693" y1="545" x2="850" y2="571" stroke="#a78bfa" stroke-width="1" marker-end="url(#arr-v)" opacity="0.5"/>
+
+  <!-- ============================================================ -->
+  <!--  LEGEND                                                        -->
+  <!-- ============================================================ -->
+  <rect x="18" y="660" width="1064" height="30" rx="6" fill="rgba(15,23,42,0.9)" stroke="#1e293b" stroke-width="1"/>
+  <rect x="30" y="670" width="10" height="10" rx="2" fill="rgba(120,53,15,0.6)" stroke="#fbbf24" stroke-width="1"/>
+  <text x="46" y="679" fill="#94a3b8" font-size="8" font-family="JetBrains Mono">Entry Point (bin/)</text>
+  <rect x="160" y="670" width="10" height="10" rx="2" fill="rgba(8,51,68,0.6)" stroke="#22d3ee" stroke-width="1"/>
+  <text x="176" y="679" fill="#94a3b8" font-size="8" font-family="JetBrains Mono">Feature/Module (common.py)</text>
+  <rect x="330" y="670" width="10" height="10" rx="2" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1"/>
+  <text x="346" y="679" fill="#94a3b8" font-size="8" font-family="JetBrains Mono">PatchMaker / fit()</text>
+  <rect x="455" y="670" width="10" height="10" rx="2" fill="rgba(76,29,149,0.5)" stroke="#a78bfa" stroke-width="1"/>
+  <text x="471" y="679" fill="#94a3b8" font-size="8" font-family="JetBrains Mono">Memory / kNN / predict()</text>
+  <rect x="610" y="670" width="10" height="10" rx="2" fill="rgba(136,19,55,0.5)" stroke="#fb7185" stroke-width="1"/>
+  <text x="626" y="679" fill="#94a3b8" font-size="8" font-family="JetBrains Mono">Coreset Sampler</text>
+  <rect x="730" y="670" width="10" height="10" rx="2" fill="rgba(251,146,60,0.4)" stroke="#fb923c" stroke-width="1"/>
+  <text x="746" y="679" fill="#94a3b8" font-size="8" font-family="JetBrains Mono">Metrics</text>
+  <rect x="810" y="670" width="10" height="10" rx="2" fill="rgba(30,41,59,0.6)" stroke="#94a3b8" stroke-width="1"/>
+  <text x="826" y="679" fill="#94a3b8" font-size="8" font-family="JetBrains Mono">Dataset / External</text>
+
+</svg>
+</div>
+
+<div class="cards-grid">
+  <div class="card">
+    <div class="card-header"><div class="card-dot dot-amber"></div><h3>파일 구조 요약</h3></div>
+    <ul>
+      <li>• bin/run_patchcore.py — CLI 진입점 (click)</li>
+      <li>• src/patchcore/patchcore.py — 핵심 클래스</li>
+      <li>• src/patchcore/common.py — 모든 하위 모듈</li>
+      <li>• src/patchcore/sampler.py — Coreset 로직</li>
+      <li>• src/patchcore/backbones.py — 백본 로더</li>
+      <li>• src/patchcore/datasets/ — MVTec, MTD 등</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-dot dot-emerald"></div><h3>핵심 클래스 관계</h3></div>
+    <ul>
+      <li>• PatchCore.forward_modules = ModuleDict</li>
+      <li>• feature_aggregator → forward hook</li>
+      <li>• PatchMaker → unfold (이웃 집계)</li>
+      <li>• featuresampler → .run() → coreset</li>
+      <li>• anomaly_scorer → FaissNN.run()</li>
+      <li>• fit() / predict() 두 메서드로 구성</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-dot dot-cyan"></div><h3>저장 & 실행 방식</h3></div>
+    <ul>
+      <li>• FAISS 인덱스 → .faiss 파일로 저장</li>
+      <li>• 하이퍼파라미터 → .pkl 파일로 저장</li>
+      <li>• GPU/CPU 모두 지원 (--faiss_on_gpu)</li>
+      <li>• 백프로파게이션 없음 (학습 없음)</li>
+      <li>• W&B 온라인 로깅 지원 (--log_online)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">amazon-science/patchcore-inspection · src/patchcore/ · 실제 코드 구조 기반</div>
+
+</body>
+</html>
