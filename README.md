@@ -1,4 +1,4 @@
-# TUK AI-HC Lab — 준아 Repository
+# TUK AI-HC Lab — 김준아 Repository
 
 ## 소개
 산업용 이상 탐지(Anomaly Detection) 논문 학습 및 재현 실험 기록.  
