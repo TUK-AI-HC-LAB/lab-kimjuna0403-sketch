@@ -1,5 +1,24 @@
 # Weekly Log
 
+## 2026-W20 
+- 미팅 자료: [meetings/2026-W20_brief.md](meetings/2026-W20_brief.md)
+
+### 전주 계획 달성도
+- [x] 세 모델 비교 분석 문서 작성 → `analysis/comparison_analysis.md`
+- [x] 후속 논문 조사 및 한계 매핑 → `method1_patchcore/markdown/followup_papers.md`
+- [ ] 후속 논문 method4 후보 최종 선정 → 미팅에서 논의 예정
+
+### 이전 미팅 결정 사항
+- 세 모델 비교표 작성
+- 각 모델 한계 + 원인 가설 정리
+- 후속 논문 조사 (모델당 2~3편)
+- method4 후보 1편 선정 + 사유
+
+### 다음 미팅까지의 계획
+- method4 후보 확정 → 미팅 결과에 따라 결정
+- method4 논문 요약 → `method4/markdown/[논문명]_summary.md`
+- method4 코드 구현
+
 ## 2026-W19 
 - 미팅 자료: [meetings/2026-W19_brief.md](meetings/2026-W19_brief.md)
 
