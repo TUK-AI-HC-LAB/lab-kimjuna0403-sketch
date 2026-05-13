@@ -20,7 +20,7 @@ MVTec AD 벤치마크 기준으로 각 모델을 재현하고 비교 분석 중.
 ## 진행 상황 요약
 
 **2026-W20 (5/14 미팅 예정)** — 세 모델 비교 분석 + 후속 논문 조사 완료.
-- 세 모델 구조적 한계 및 수렴 실패 원인 가설 정리 → `analysis/comparison_analysis.md`
+- 세 모델 구조적 한계 및 수렴 실패 원인 가설 정리 → `method1_patchcore/markdown/산업용 이상 탐지 모델의 카테고리 의존성에 관한 비교 연구.md`
 - 후속 논문 8편 한계 매핑 (FastFlow, EfficientAD, RealNet, DRAEM, DeSTSeg, SuperSimpleNet, RD++, ReContrast) → `method1_patchcore/markdown/followup_papers.md`
 - method4 유력 후보: EfficientAD (미팅에서 최종 선정 예정)
 - → `meetings/2026-W20_brief.md`
@@ -40,4 +40,4 @@ MVTec AD 벤치마크 기준으로 각 모델을 재현하고 비교 분석 중.
 - [method1_patchcore/](method1_patchcore/)
 - [method2_simplenet/](method2_simplenet/)
 - [method3_rd/](method3_rd/)
-- [analysis/](analysis/)
+
