@@ -68,8 +68,9 @@
 
 ## 출처
 
-- commit: `TBD`
+- commit: `f6c79f0`
 - 관련 파일:
-  - `method1_patchcore/markdown/PatchCore_summary.md`
-  - `method2_simplenet/markdown/SimpleNet_summary.md`
-  - `method3_rd/markdown/ReverseDistillation_summary.md`
+  - method1_patchcore/markdown/Towards Total Recall in Industrial Anomaly Detection - 산업용 이상 탐지에 있어서의 완전한 재현율을 향하여.md
+  - method2_simplenet/markdown/SimpleNet, A Simple Network for Image Anomaly Detection and Localization - 이미지 이상 탐지 및 위치 특정(국지화)을 위한 단순 신경망.md
+  - method2_simplene/markdown/추가_SimpleNet epoch 160으로 돌려보기.md
+  - method3_rd/markdown/Anomaly Detection via Reverse Distillation from One-Class Embedding-단일 클래스 임베딩으로부터의 역증류를 통한 이상 탐지.md
