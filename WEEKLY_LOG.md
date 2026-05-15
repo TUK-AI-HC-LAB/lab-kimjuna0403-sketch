@@ -1,5 +1,24 @@
 # Weekly Log
 
+## 2026-W21 (5/15 ~ 5/21 미팅)
+- 미팅 자료: [meetings/2026-W21_brief.md](meetings/2026-W21_brief.md)
+
+### 전주 계획 달성도
+- [x] 세 모델 비교 분석 문서 작성 → `method1_patchcore/markdown/comparison_table.md`
+- [x] 후속 논문 조사 8편 매핑 → `method1_patchcore/markdown/followup_papers.md`
+
+### 이전 미팅 결정 사항 (5/14 미팅)
+- method4는 Dinomaly로 확정
+- 깨진 링크 정리 먼저 완료할 것
+- Dinomaly가 SimpleNet 한계를 실제로 해결하는지 MVTec 기준으로 검증
+
+### 다음 미팅까지의 계획
+- 깨진 링크 정리: `analysis/comparison_analysis.md` 경로 수정, `commit: TBD` → 실제 hash 교체
+- Dinomaly 논문 요약 → `method4_dinomaly/markdown/Dinomaly_summary.md`
+- Dinomaly 코드 재현 (MVTec, hazelnut/screw) → `method4_dinomaly/source/`
+- 결과 csv 저장 → `method4_dinomaly/source/results/`
+- SimpleNet screw 결과와 비교표 업데이트
+  
 ## 2026-W20 
 - 미팅 자료: [meetings/2026-W20_brief.md](meetings/2026-W20_brief.md)
 
