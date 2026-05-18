@@ -195,17 +195,127 @@ Hard-mining Global Cosine Loss: 학습 중 이미 잘 복원된 포인트(cosine
 
 ---
 
-## 결론 및 한계
+## SimpleNet의 한계와 Dinomaly의 검증
 
-**장점:**
+SimpleNet이 논문 수준에서 내재하고 있는 구조적 한계들을 정리하고, Dinomaly가 이를 실제로 해결하는지 재현 실험 수치로 검증함.
 
-- Attention과 MLP만으로 구성된 순수 Transformer 구조 → 추가 모듈 없음
-- 기존 MUAD 방법들을 큰 폭으로 상회하면서, class-separated 전용 모델과 동등한 성능
-- 스케일링이 가능해서 계산 자원에 따라 모델 크기와 입력 해상도를 유연하게 조절 가능
-- SimpleNet, UniAD 등이 의존하는 heuristic한 노이즈 설계 없이 Dropout 하나로 대체
+---
 
-**한계:**
+### 한계 ① Synthetic Anomaly의 heuristic 의존성
 
-- ViT 특성상 계산 비용이 높음 → FlashAttention, 지식 증류(distillation), 가지치기(pruning) 등으로 개선 여지 있음
-- **Sensory AD** (같은 물체의 표면/구조 결함 탐지) 전용. **Semantic AD** (정상과 이상이 아예 다른 클래스인 경우, 예: 동물 vs 차량)에는 적합하지 않음
-- Zero-shot UAD(비전-언어 모델 기반), Few-shot UAD, 노이즈 포함 학습셋 설정은 다루지 않음
+SimpleNet의 Anomaly Feature Generator는 정상 피처에 **고정된 Gaussian noise(σ=0.015)** 를 더해 가짜 불량 피처를 생성함. 이 설계는 세 가지 구조적 문제를 내포함.
+
+첫째, σ값이 전 카테고리에 단일 고정값으로 설정되어 있음. SimpleNet 논문(Figure 5)에서 σ에 따라 카테고리별 성능 편차가 발생하며, 이는 σ=0.015가 모든 카테고리의 결함 분포를 균등하게 커버하지 못함을 시사함.
+
+둘째, SimpleNet 논문이 명시하듯 test set을 validation에 그대로 사용하는 구조로 설계되어 있음. 이는 검증 지표가 실제 일반화 성능을 과대 추정할 수 있음을 의미하며, 논문 수치의 신뢰성에 근본적인 의문을 남김.sjrk 
+
+셋째, Gaussian noise 기반의 가짜 불량 생성은 heuristic에 의존하는 방식으로, 도메인이나 데이터셋이 달라질 경우 범용성이 보장되지 않음.
+
+**Dinomaly의 접근:** Noisy Bottleneck은 Gaussian noise를 외부에서 주입하는 대신, MLP 보틀넥 내부의 Dropout이 뉴런을 랜덤하게 비활성화하면서 노이즈 효과를 만들어냄. Discriminator를 학습시키지 않고 복원 오류(cosine distance) 자체를 이상치 점수로 사용하는 구조이므로, test/validation 혼용 문제가 구조적으로 발생하지 않음. 논문(Table A8)에서 Dropout이 Feature Jitter 대비 하이퍼파라미터 변화에 더 강건한 성능을 보임.
+
+---
+
+### 한계 ② Single-Class 전용 설계
+
+SimpleNet은 클래스별로 모델을 따로 학습시키는 class-separated 설정만 지원함. 하나의 모델로 여러 클래스를 동시에 처리하는 MUAD 설정에서는 구조적으로 Identity Mapping 문제를 피하기 어려움.
+
+**Dinomaly의 접근:** MUAD를 핵심 설계 목표로 삼으며, 15개 클래스를 하나의 모델로 학습해도 class-separated 전용 모델과 동등한 성능을 달성함. 논문 기준 MVTec-AD에서 MUAD Dinomaly(99.6%) vs class-separated Dinomaly(99.7%)로 차이가 0.1%p에 불과.
+
+---
+
+### 한계 ③ Localization 성능
+
+SimpleNet은 Discriminator의 위치별 출력값을 anomaly map으로 사용하는 방식이라, 픽셀 단위 localization 정밀도에 한계가 있음. 논문 기준 MVTec-AD P-AUROC 98.1%로 PatchCore(98.1%)와 동등하지만, 구조적으로 위치 정보를 정밀하게 추론하기보다 전역적 판단에 의존하는 경향이 있음.
+
+**Dinomaly의 접근:** 멀티스케일 피처를 2개 그룹으로 나누어 group-to-group 복원하고, 위치별 cosine distance를 anomaly map으로 사용함. 저수준 시각 특징 그룹이 정밀한 localization에 기여함.
+
+---
+
+### 재현 실험 비교표 (MVTec-AD 기준)
+
+**전체 평균:**
+
+|지표|PatchCore|SimpleNet|Dinomaly (논문)|Dinomaly (재현)|
+|---|---|---|---|---|
+|I-AUROC|99.1%|99.6%|**99.6%**|**99.62%**|
+|P-AUROC|98.1%|98.1%|98.4%|**98.32%**|
+|P-AUPRO|93.5%|90.0%|94.8%|**94.65%**|
+
+**screw 카테고리 (핵심 비교):**
+
+|모델|I-AUROC|P-AUROC|
+|---|---|---|
+|PatchCore|0.988|0.995|
+|SimpleNet (논문)|0.982|0.993|
+|**Dinomaly (재현)**|**0.985**|**0.996**|
+
+screw에서 Dinomaly가 안정적으로 높은 성능을 보임. SimpleNet 논문 수치(0.982)와 비교해도 Dinomaly(0.985)가 소폭 우위.
+
+---
+
+## Dinomaly의 한계
+
+### ① 높은 계산 비용
+
+ViT-Base 기준 104.7G MACs로, SimpleNet(WideResNet50 기반)보다 계산 비용이 현저히 높음. 추론 속도 역시 SimpleNet의 77 FPS에 비해 불리함. 논문에서도 FlashAttention, distillation, pruning 등을 향후 개선 방향으로 언급함.
+
+### ② Zero-shot 설정 미지원
+
+Dinomaly는 학습 데이터 없이 새로운 도메인에 바로 적용하는 Zero-shot UAD 설정을 다루지 않음. MVTec-AD에서 학습하고 VisA에 학습 없이 바로 테스트하는 cross-domain 실험은 논문에서 수행되지 않았으며, 이 경우 성능 저하가 예상됨. 비전-언어 모델(WinCLIP 등) 기반 Zero-shot 방법들과의 비교는 별도 연구가 필요함.
+
+### ③ Sensory AD 전용
+
+정상과 불량이 같은 물체인데 표면/구조 결함이 있는 **Sensory AD** 전용으로 설계됨. 정상 클래스와 이상 클래스가 아예 다른 **Semantic AD** (예: 동물 vs 차량)에는 적합하지 않음. 논문에서도 이 한계를 명시하며, "no free lunch" 관점에서 특정 이상 가정에 특화된 방법이 더 설득력 있다고 언급함.
+
+### ④ Few-shot / 노이즈 학습셋 설정 미포함
+
+Zero-shot UAD, Few-shot UAD, 노이즈가 포함된 학습셋(noisy training set) 설정은 논문 범위에 포함되지 않음. 실제 산업 환경에서는 소량의 불량 샘플이 학습셋에 混入되는 경우가 있어, 이에 대한 강건성은 별도 검증이 필요함.
+
+---
+
+## 코드 구현
+
+### 환경 및 설정
+
+- 플랫폼: Kaggle Notebook (NVIDIA Tesla T4, 30GB GPU)
+- 데이터셋: MVTec-AD 15클래스 전체
+- 백본: ViT-Base/14 (DINOv2-Register, 논문 기본값)
+- iteration: 10,000 (논문 기본값)
+- 수정사항: `utils.py`의 `df.append()` → `pd.concat()` (pandas 버전 호환성 패치)
+
+### 실험 결과 (iter 10,000 최종)
+
+|카테고리|I-AUROC|P-AUROC|P-AUPRO|
+|---|---|---|---|
+|carpet|0.9988|0.9934|0.9753|
+|grid|0.9975|0.9940|0.9713|
+|leather|1.0000|0.9934|0.9778|
+|tile|1.0000|0.9809|0.9056|
+|wood|0.9991|0.9759|0.9365|
+|bottle|1.0000|0.9913|0.9668|
+|cable|1.0000|0.9834|0.9392|
+|capsule|0.9793|0.9868|0.9742|
+|hazelnut|1.0000|0.9943|0.9706|
+|metal_nut|1.0000|0.9686|0.9466|
+|pill|0.9924|0.9783|0.9746|
+|screw|0.9850|0.9964|0.9833|
+|toothbrush|1.0000|0.9890|0.9517|
+|transistor|0.9904|0.9305|0.7531|
+|zipper|1.0000|0.9917|0.9704|
+|**Mean**|**0.9962**|**0.9832**|**0.9465**|
+
+논문 수치(I-AUROC 99.6%, P-AUROC 98.4%, P-AUPRO 94.8%) 대비 오차 범위 내에서 재현 성공.
+
+### 느낀점 및 인사이트
+
+**1. SimpleNet 대비 수렴 안정성**
+
+SimpleNet은 screw 카테고리에서 epoch 내내 I-AUROC가 진동하며 수렴에 실패한 반면, Dinomaly는 loss가 0.2052(iter 226)에서 0.0483(iter 10000)으로 단조 감소하며 안정적으로 수렴함. Discriminator 기반 학습이 아닌 복원 오류 기반 구조의 차이가 수렴 안정성에 직접 영향을 줌.
+
+**2. MUAD 설정의 실효성**
+
+15개 클래스를 하나의 모델로 학습했음에도 논문 수치를 재현했다는 것은, Dinomaly가 MUAD 설정에서 class-separated 모델과의 성능 gap을 실질적으로 좁혔음을 직접 확인한 것.
+
+**3. 계산 비용**
+
+Kaggle T4 기준 10,000 iteration에 약 7시간 소요. SimpleNet의 160 epoch(약 6시간)과 유사한 수준이지만, Dinomaly는 15개 클래스 전체를 동시에 처리한 결과라는 점에서 클래스당 비용은 오히려 낮음.
