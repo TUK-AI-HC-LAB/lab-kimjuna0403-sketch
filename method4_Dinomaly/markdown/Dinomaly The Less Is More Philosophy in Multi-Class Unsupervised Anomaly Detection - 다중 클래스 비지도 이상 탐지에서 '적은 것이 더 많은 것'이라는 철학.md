@@ -302,4 +302,10 @@ Dinomaly는 loss가 0.2052(iter 226)에서 0.0483(iter 10000)으로
 
 **3. 계산 비용**
 
-Kaggle T4 기준 10,000 iteration에 약 7시간 소요. SimpleNet의 160 epoch(약 6시간)과 유사한 수준이지만, Dinomaly는 15개 클래스 전체를 동시에 처리한 결과라는 점에서 클래스당 비용은 오히려 낮음.
+Kaggle T4 기준 10,000 iteration에 약 7시간 소요 (15개 클래스 전체 동시 학습).
+SimpleNet은 screw 1개 클래스에만 약 2시간 이상 소요되므로,
+15개 클래스 전체 기준으로 환산하면 약 30시간 이상이 필요하다.
+즉 MUAD 설정 기준 Dinomaly의 실질 학습 비용은 SimpleNet 대비
+4배 이상 효율적이다.
+단, 추론 속도는 Dinomaly(58 Im/s)가 SimpleNet(77 FPS)보다 불리하며,
+이는 ViT 기반 구조의 연산량(104.7G MACs) 때문이다.
