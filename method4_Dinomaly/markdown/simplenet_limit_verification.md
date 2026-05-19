@@ -30,6 +30,8 @@
 | **transistor P-AUPRO** | - | - | 75.31% | ⚠️ 유독 낮음 |
 
 ---
+⚠️ transistor P-AUPRO 75.31% — 유독 낮음
+transistor처럼 결함이 작고 국소적인 카테고리에서 P-AUPRO가 낮다는 건, 이미지 수준 탐지는 잘 하는데 정확히 어디가 결함인지 픽셀 단위로 가리키는 건 부족하다는 의미이다. 정확한 원인은 논문에서 별도로 분석되지 않는다. 다만 transistor는 납땜 부위, 핀 휨 등 결함이 극히 국소적이고 이미지마다 부품 방향이 다양하다는 특성이 있으며, Dinomaly의 Linear Attention이 전체 이미지를 참조하도록 설계된 구조와 충돌할 가능성이 있다. 또한 ViT-Base/14의 최소 처리 단위(14×14 픽셀)보다 작은 결함은 패치 내에서 희석될 수 있다. 이는 추론이며, 검증을 위해서는 별도 실험이 필요하다. 참고로 같은 지표에서 UniAD는 93.5%를 기록한다 (Dinomaly 논문 Table A15).
 
 ## 출처
 - SimpleNet 수치: Liu et al., SimpleNet (CVPR 2023), Table 1
